@@ -1,5 +1,3 @@
-import 'package:chat_pocket_base/models/api_response.dart';
-import 'package:chat_pocket_base/models/user.dart';
 import 'package:chat_pocket_base/providers/providers.dart';
 import 'package:chat_pocket_base/screens/screens.dart';
 import 'package:chat_pocket_base/shared/shared.dart';
@@ -129,27 +127,15 @@ class _FormState extends ConsumerState<_Form> {
                   ? null
                   : () async {
                       if (!_formKey.currentState!.validate()) return;
-                      await ref.read(signUpProvider.notifier).signUp().then(
-                        (response) {
-                          if (!context.mounted) return;
-
-                          response.when(
-                            left: (ApiResponse response) {
-                              CustomSnackBar.showSnackBar(
-                                context: context,
-                                message: response.message,
-                              );
-                            },
-                            right: (User user) {
-                              Navigator.pushNamedAndRemoveUntil(
-                                context,
-                                SignInScreen.routeName,
-                                (route) => false,
-                              );
-                            },
-                          );
-                        },
-                      );
+                      await ref
+                          .read(authProvider.notifier)
+                          .signUp()
+                          .then((response) {
+                        if (response == null) return;
+                        if (!context.mounted) return;
+                        CustomSnackBar.showSnackBar(
+                            context: context, message: response.message);
+                      });
                     },
               text: "Sign Up",
             ),
