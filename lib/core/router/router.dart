@@ -1,91 +1,78 @@
-import 'dart:developer';
-
-import 'package:chat_pocket_base/core/router/go_router_notifier.dart';
-import 'package:chat_pocket_base/core/router/redirect_route.dart';
+import 'package:chat_pocket_base/core/router/router_observer.dart';
+import 'package:chat_pocket_base/providers/providers.dart';
+import 'package:chat_pocket_base/screens/screens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:chat_pocket_base/screens/screens.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final navigatorKey = GlobalKey<NavigatorState>();
 
-final goRouterProvider = Provider<GoRouter>((ref) {
-  final goRouterNotifier = ref.watch(goRouterNotifierProvider);
+final appRouterProvider = Provider<AppRouter>((ref) => AppRouter(ref));
 
-  return GoRouter(
-    refreshListenable: goRouterNotifier,
-    navigatorKey: _rootNavigatorKey,
-    initialLocation: '/sign-in',
-    redirect: (context, state) {
-      final isGoingTo = state.matchedLocation;
-      final authStatus = goRouterNotifier.authStatus;
-      final redirectRoute = RedirectRoute(
-        authStatus: authStatus,
-        route: isGoingTo,
-      );
-      log('Redirecting to: $isGoingTo');
+class AppRouter {
+  final Ref ref;
 
-      if (redirectRoute.isRouteAllowed()) {
-        return null;
-      }
+  AppRouter(this.ref) {
+    ref.listen<AuthState>(authProvider, (_, next) => _handleAuthState(next));
+  }
 
-      return redirectRoute.getRedirectRoute();
-    },
-    routes: [
-      GoRoute(
-        path: '/home',
-        name: HomeScreen.routeName,
-        pageBuilder: (context, state) => customTransitionPage(
-          child: const HomeScreen(),
-          state: state,
-        ),
-      ),
-      GoRoute(
-        path: '/sign-in',
-        name: SignInScreen.routeName,
-        pageBuilder: (context, state) => customTransitionPage(
-          child: const SignInScreen(),
-          state: state,
-        ),
-      ),
-      GoRoute(
-        path: '/sign-up',
-        name: SignUpScreen.routeName,
-        pageBuilder: (context, state) => customTransitionPage(
-          child: const SignUpScreen(),
-          state: state,
-        ),
-      ),
-      GoRoute(
-        path: '/chats',
-        name: ChatsView.routeName,
-        pageBuilder: (context, state) => customTransitionPage(
-          child: const ChatsView(),
-          state: state,
-        ),
-        routes: [
-          GoRoute(
-            path: 'chat',
-            name: ChatView.routeName,
-            pageBuilder: (context, state) => customTransitionPage(
-              child: const ChatView(),
-              state: state,
-            ),
-          ),
-        ],
-      ),
-    ],
-  );
-});
+  final _routes = {
+    HomeScreen.routeName: _RouteConfig(
+      builder: (_) => const HomeScreen(),
+      isAllowed: (isAuth) => isAuth,
+    ),
+    SignInScreen.routeName: _RouteConfig(
+      builder: (_) => const SignInScreen(),
+      isAllowed: (isAuth) => !isAuth,
+    ),
+    SignUpScreen.routeName: _RouteConfig(
+      builder: (_) => const SignUpScreen(),
+      isAllowed: (isAuth) => !isAuth,
+    ),
+    ChatsView.routeName: _RouteConfig(
+      builder: (_) => const ChatsView(),
+      isAllowed: (isAuth) => isAuth,
+    ),
+    ChatView.routeName: _RouteConfig(
+      builder: (_) => const ChatView(),
+      isAllowed: (isAuth) => isAuth,
+    ),
+  };
 
-CustomTransitionPage<T> customTransitionPage<T>({
-  required Widget child,
-  required GoRouterState state,
-}) {
-  return CustomTransitionPage<T>(
-    child: child,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(opacity: animation, child: child);
-    },
-  );
+  Route<dynamic> generateRoute(RouteSettings settings) {
+    final routeConfig =
+        _routes[settings.name] ?? _routes[SignInScreen.routeName]!;
+    return MaterialPageRoute(
+      builder: routeConfig.builder,
+      settings: settings,
+    );
+  }
+
+  void redirect(String routeName) {
+    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      routeName,
+      (route) => false,
+    );
+  }
+
+  void _handleAuthState(AuthState authState) {
+    final isAuthenticated = authState.authStatus == AuthStatus.authenticated;
+    final currentRoute = ref.read(currentRouteProvider);
+
+    if (!isRouteAllowed(currentRoute, isAuthenticated)) {
+      final targetRoute =
+          isAuthenticated ? HomeScreen.routeName : SignInScreen.routeName;
+      redirect(targetRoute);
+    }
+  }
+
+  bool isRouteAllowed(String? routeName, bool isAuthenticated) {
+    return _routes[routeName]?.isAllowed(isAuthenticated) ?? false;
+  }
+}
+
+class _RouteConfig {
+  final WidgetBuilder builder;
+  final bool Function(bool) isAllowed;
+
+  const _RouteConfig({required this.builder, required this.isAllowed});
 }

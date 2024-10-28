@@ -17,14 +17,17 @@ class MainApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(appRouterProvider);
+    final routerObserver = ref.watch(routerObserverProvider);
     final appTheme = AppTheme();
-    final router = ref.watch(goRouterProvider);
 
-    return MaterialApp.router(
-      routerConfig: router,
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: appTheme.lightTheme,
       darkTheme: appTheme.darkTheme,
+      onGenerateRoute: router.generateRoute,
+      navigatorObservers: [routerObserver],
+      navigatorKey: navigatorKey,
     );
   }
 }

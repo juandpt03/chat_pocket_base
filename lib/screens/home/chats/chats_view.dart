@@ -48,12 +48,7 @@ class ChatsView extends ConsumerWidget {
               itemBuilder: (context, index) => ChatCard(
                 chat: chatsData[index],
                 press: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ChatView(),
-                    ),
-                  );
+                  Navigator.pushNamed(context, ChatView.routeName);
                 },
               ),
             ),
