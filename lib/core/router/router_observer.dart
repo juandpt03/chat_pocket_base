@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,8 +14,10 @@ class RouterObserver extends NavigatorObserver {
 
   RouterObserver(this.ref);
 
-  void _updateCurrentRoute(String? routeName) {
+  void _setRoute(Route<dynamic>? route) {
+    final routeName = route?.settings.name;
     if (routeName != null) {
+      log('Route: $routeName');
       ref.read(currentRouteProvider.notifier).state = routeName;
     }
   }
@@ -21,24 +25,24 @@ class RouterObserver extends NavigatorObserver {
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPush(route, previousRoute);
-    _updateCurrentRoute(route.settings.name);
+    _setRoute(route);
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPop(route, previousRoute);
-    _updateCurrentRoute(previousRoute?.settings.name);
+    _setRoute(previousRoute);
   }
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-    _updateCurrentRoute(newRoute?.settings.name);
+    _setRoute(newRoute);
   }
 
   @override
   void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didRemove(route, previousRoute);
-    _updateCurrentRoute(previousRoute?.settings.name);
+    _setRoute(previousRoute);
   }
 }

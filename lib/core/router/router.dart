@@ -5,74 +5,67 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
-
 final appRouterProvider = Provider<AppRouter>((ref) => AppRouter(ref));
 
 class AppRouter {
   final Ref ref;
 
   AppRouter(this.ref) {
-    ref.listen<AuthState>(authProvider, (_, next) => _handleAuthState(next));
+    ref.listen<AuthState>(authProvider, (_, next) {
+      _handleAuthStateChange(next);
+    });
   }
 
-  final _routes = {
-    HomeScreen.routeName: _RouteConfig(
-      builder: (_) => const HomeScreen(),
-      isAllowed: (isAuth) => isAuth,
-    ),
-    SignInScreen.routeName: _RouteConfig(
-      builder: (_) => const SignInScreen(),
-      isAllowed: (isAuth) => !isAuth,
-    ),
-    SignUpScreen.routeName: _RouteConfig(
-      builder: (_) => const SignUpScreen(),
-      isAllowed: (isAuth) => !isAuth,
-    ),
-    ChatsView.routeName: _RouteConfig(
-      builder: (_) => const ChatsView(),
-      isAllowed: (isAuth) => isAuth,
-    ),
-    ChatView.routeName: _RouteConfig(
-      builder: (_) => const ChatView(),
-      isAllowed: (isAuth) => isAuth,
-    ),
-  };
+  void _handleAuthStateChange(AuthState authState) {
+    final isAuth = authState.authStatus == AuthStatus.authenticated;
+    final currentRoute = ref.read(currentRouteProvider);
+    final shouldRedirect = _routes[currentRoute]?.isAuth != isAuth;
+
+    if (shouldRedirect) redirect(isAuth);
+  }
+
+  void redirect(bool isAuth) {
+    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      isAuth ? HomeScreen.routeName : SignInScreen.routeName,
+      (_) => false,
+    );
+  }
 
   Route<dynamic> generateRoute(RouteSettings settings) {
-    final routeConfig =
-        _routes[settings.name] ?? _routes[SignInScreen.routeName]!;
+    final route = _routes[settings.name] ?? _routes[SignInScreen.routeName]!;
     return MaterialPageRoute(
-      builder: routeConfig.builder,
+      builder: route.builder,
       settings: settings,
     );
   }
 
-  void redirect(String routeName) {
-    navigatorKey.currentState?.pushNamedAndRemoveUntil(
-      routeName,
-      (route) => false,
-    );
-  }
-
-  void _handleAuthState(AuthState authState) {
-    final isAuthenticated = authState.authStatus == AuthStatus.authenticated;
-    final currentRoute = ref.read(currentRouteProvider);
-
-    if (!isRouteAllowed(currentRoute, isAuthenticated)) {
-      final targetRoute =
-          isAuthenticated ? HomeScreen.routeName : SignInScreen.routeName;
-      redirect(targetRoute);
-    }
-  }
-
-  bool isRouteAllowed(String? routeName, bool isAuthenticated) {
-    return _routes[routeName]?.isAllowed(isAuthenticated) ?? false;
-  }
+  final _routes = {
+    HomeScreen.routeName: _RouteData(
+      builder: (_) => const HomeScreen(),
+      isAuth: true,
+    ),
+    SignInScreen.routeName: _RouteData(
+      builder: (_) => const SignInScreen(),
+      isAuth: false,
+    ),
+    SignUpScreen.routeName: _RouteData(
+      builder: (_) => const SignUpScreen(),
+      isAuth: false,
+    ),
+    ChatsView.routeName: _RouteData(
+      builder: (_) => const ChatsView(),
+      isAuth: true,
+    ),
+    ChatView.routeName: _RouteData(
+      builder: (_) => const ChatView(),
+      isAuth: true,
+    ),
+  };
 }
 
-class _RouteConfig {
+class _RouteData {
   final WidgetBuilder builder;
-  final bool Function(bool) isAllowed;
+  final bool isAuth;
 
-  const _RouteConfig({required this.builder, required this.isAllowed});
+  const _RouteData({required this.builder, required this.isAuth});
 }
