@@ -1,12 +1,14 @@
+import 'package:chat_pocket_base/providers/auth/auth_provider.dart';
 import 'package:chat_pocket_base/screens/screens.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ChatsView extends StatelessWidget {
+class ChatsView extends ConsumerWidget {
   static const String routeName = "/home/chats";
   const ChatsView({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -59,7 +61,9 @@ class ChatsView extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          ref.read(authProvider.notifier).setLoggedOutUser();
+        },
         backgroundColor: const Color(0xFF00BF6D),
         child: const Icon(
           Icons.person_add_alt_1,

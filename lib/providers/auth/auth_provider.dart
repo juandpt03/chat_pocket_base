@@ -33,8 +33,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (token.isEmpty) return setLoggedOutUser();
   }
 
-  Future<void> signOut() async {}
-
   Future<ApiResponse?> signIn() async {
     final response = await ref.read(signInProvider.notifier).signIn();
 
@@ -64,8 +62,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   void setLoggedOutUser() {
     state = state.copyWith(user: null, authStatus: AuthStatus.unauthenticated);
-
     pb.authStore.clear();
+    _authStoreSubscription?.cancel();
   }
 
   void onStateChanged() {

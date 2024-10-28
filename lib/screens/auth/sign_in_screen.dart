@@ -97,25 +97,11 @@ class _FormState extends ConsumerState<_Form> {
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
 
-                await ref
-                    .read(signInProvider.notifier)
-                    .signIn()
-                    .then((response) {
-                  response.when(
-                    left: (response) {
-                      CustomSnackBar.showSnackBar(
-                        context: context,
-                        message: response.message,
-                      );
-                    },
-                    right: (User user) {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        HomeScreen.routeName,
-                        (route) => false,
-                      );
-                    },
-                  );
+                await ref.read(authProvider.notifier).signIn().then((response) {
+                  if (response == null) return;
+                  if (!context.mounted) return;
+                  CustomSnackBar.showSnackBar(
+                      context: context, message: response.message);
                 });
               },
               text: "Sign In",
