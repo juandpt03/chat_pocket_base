@@ -101,7 +101,10 @@ class _FormState extends ConsumerState<_Form> {
                 await ref.read(authProvider.notifier).signIn().then((response) {
                   if (!context.mounted) return;
                   CustomSnackBar.showSnackBar(
-                      context: context, message: response.message);
+                    context: context,
+                    message: response.message,
+                    success: response.success,
+                  );
                 });
               },
               text: "Sign In",

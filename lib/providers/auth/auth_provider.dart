@@ -47,11 +47,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return response;
   }
 
-  void setLoggedIn(User user) {
+  void _setLoggedIn(User user) {
     state = state.copyWith(user: user, authStatus: AuthStatus.authenticated);
   }
 
-  void setLoggedOut() {
+  void _setLoggedOut() {
     state = state.copyWith(user: null, authStatus: AuthStatus.unauthenticated);
   }
 
@@ -61,11 +61,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _authStoreSubscription = pb.authStore.onChange.listen((event) {
       log('AuthStoreEvent: $event');
       if (event.token.isEmpty) {
-        setLoggedOut();
+        _setLoggedOut();
         return;
       }
       final user = User.fromJson(pb.authStore.model.toJson());
-      setLoggedIn(user);
+      _setLoggedIn(user);
     });
   }
 
@@ -90,7 +90,7 @@ class AuthState {
     AuthStatus? authStatus,
   }) =>
       AuthState(
-        user: user ?? this.user,
+        user: user,
         authStatus: authStatus ?? this.authStatus,
       );
 }

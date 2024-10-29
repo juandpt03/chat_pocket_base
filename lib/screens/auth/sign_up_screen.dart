@@ -133,10 +133,14 @@ class _FormState extends ConsumerState<_Form> {
                           .signUp()
                           .then((response) {
                         if (!context.mounted) return;
-                        context.pushRemove(
-                            SignInScreen.routeName, (route) => false);
+                        if (response.success) {
+                          context.pushRemove(
+                              SignInScreen.routeName, (route) => false);
+                        }
                         CustomSnackBar.showSnackBar(
-                            context: context, message: response.message);
+                            context: context,
+                            message: response.message,
+                            success: response.success);
                       });
                     },
               text: "Sign Up",
