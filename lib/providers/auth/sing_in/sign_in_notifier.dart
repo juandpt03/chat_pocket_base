@@ -1,4 +1,3 @@
-import 'package:chat_pocket_base/core/core.dart';
 import 'package:chat_pocket_base/models/models.dart';
 import 'package:chat_pocket_base/providers/auth/sing_in/sign_in_state.dart';
 import 'package:chat_pocket_base/services/services.dart';
@@ -20,7 +19,7 @@ class SignInNotifier extends StateNotifier<SignInState> {
     state = state.copyWith(user: state.user.copyWith(password: password));
   }
 
-  Future<Either<ApiResponse, User>> signIn() async {
+  Future<ApiResponse> signIn() async {
     final user = state.user;
 
     state = state.copyWith(isPosting: true);

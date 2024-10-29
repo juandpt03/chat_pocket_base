@@ -1,4 +1,3 @@
-import 'package:chat_pocket_base/core/patterns/either.dart';
 import 'package:chat_pocket_base/models/models.dart';
 import 'package:chat_pocket_base/providers/auth/sign_up/sign_up_state.dart';
 import 'package:chat_pocket_base/services/auth/auth_service.dart';
@@ -24,7 +23,7 @@ class SignUpNotifier extends StateNotifier<SignUpState> {
     state = state.copyWith(user: state.user.copyWith(password: password));
   }
 
-  Future<Either<ApiResponse, User>> signUp() async {
+  Future<ApiResponse> signUp() async {
     final user = state.user;
 
     state = state.copyWith(isPosting: true);

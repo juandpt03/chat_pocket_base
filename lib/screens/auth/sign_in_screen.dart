@@ -1,3 +1,4 @@
+import 'package:chat_pocket_base/core/extensions/navigator_extension.dart';
 import 'package:chat_pocket_base/models/models.dart';
 import 'package:chat_pocket_base/providers/providers.dart';
 import 'package:chat_pocket_base/shared/shared.dart';
@@ -98,7 +99,6 @@ class _FormState extends ConsumerState<_Form> {
                 if (!_formKey.currentState!.validate()) return;
 
                 await ref.read(authProvider.notifier).signIn().then((response) {
-                  if (response == null) return;
                   if (!context.mounted) return;
                   CustomSnackBar.showSnackBar(
                       context: context, message: response.message);
@@ -109,7 +109,7 @@ class _FormState extends ConsumerState<_Form> {
           ),
           CustomTextButton(
             onPressed: () {
-              Navigator.pushNamed(context, SignUpScreen.routeName);
+              context.push(SignUpScreen.routeName);
             },
             child: Text.rich(
               const TextSpan(

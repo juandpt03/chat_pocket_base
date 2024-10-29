@@ -1,6 +1,8 @@
 import 'package:chat_pocket_base/core/core.dart';
 import 'package:chat_pocket_base/services/services.dart';
+
 import 'package:pocketbase/pocketbase.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DI {
   DI._internal();
@@ -10,7 +12,13 @@ class DI {
   factory DI() => instance;
 
   Future<void> setup() async {
-    serviceLocator.register(PocketBase(apiURL));
+    final prefs = await SharedPreferences.getInstance();
+    final store = AsyncAuthStore(
+      save: (String data) async => prefs.setString('pb_auth', data),
+      initial: prefs.getString('pb_auth'),
+    );
+    serviceLocator.register(prefs);
+    serviceLocator.register(PocketBase(apiURL, authStore: store));
     serviceLocator.register(AuthService(pb: serviceLocator.get()));
   }
 }

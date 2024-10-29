@@ -7,6 +7,7 @@ void main() async {
   await DI().setup();
   runApp(
     const ProviderScope(
+      // observers: [ProviderStateLogger()],
       child: MainApp(),
     ),
   );

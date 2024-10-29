@@ -6,3 +6,6 @@ export 'package:chat_pocket_base/core/di/di.dart';
 export 'package:chat_pocket_base/core/di/service_locator.dart';
 export 'package:chat_pocket_base/core/theme/app_theme.dart';
 export 'package:chat_pocket_base/core/router/router_observer.dart';
+export 'package:chat_pocket_base/core/utils/logger_state.dart';
+export 'package:chat_pocket_base/core/utils/multi_observer.dart';
+export 'package:chat_pocket_base/core/extensions/navigator_extension.dart';

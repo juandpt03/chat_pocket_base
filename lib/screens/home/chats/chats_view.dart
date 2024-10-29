@@ -1,3 +1,4 @@
+import 'package:chat_pocket_base/core/core.dart';
 import 'package:chat_pocket_base/providers/auth/auth_provider.dart';
 import 'package:chat_pocket_base/screens/screens.dart';
 import 'package:flutter/material.dart';
@@ -47,21 +48,17 @@ class ChatsView extends ConsumerWidget {
               itemCount: chatsData.length,
               itemBuilder: (context, index) => ChatCard(
                 chat: chatsData[index],
-                press: () {
-                  Navigator.pushNamed(context, ChatView.routeName);
-                },
+                press: () => context.push(ChatView.routeName),
               ),
             ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ref.read(authProvider.notifier).setLoggedOutUser();
-        },
+        onPressed: () => ref.read(authProvider.notifier).logout(),
         backgroundColor: const Color(0xFF00BF6D),
         child: const Icon(
-          Icons.person_add_alt_1,
+          Icons.logout,
           color: Colors.white,
         ),
       ),

@@ -1,76 +1,71 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:chat_pocket_base/core/core.dart';
 import 'package:chat_pocket_base/models/models.dart';
 import 'package:chat_pocket_base/providers/providers.dart';
+import 'package:chat_pocket_base/services/auth/auth_service.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(
-    pb: ServiceLocator().get(),
     ref: ref,
+    pb: ServiceLocator().get(),
+    authService: ServiceLocator().get(),
   );
 });
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final Ref ref;
   final PocketBase pb;
+  final AuthService authService;
   StreamSubscription<AuthStoreEvent>? _authStoreSubscription;
 
   AuthNotifier({
     required this.ref,
     required this.pb,
+    required this.authService,
   }) : super(AuthState(authStatus: AuthStatus.checking)) {
-    checkAuthStatus();
-    onStateChanged();
+    _checkAuthStatus();
+    _onStateChanged();
   }
 
-  void checkAuthStatus() {
-    final token = pb.authStore.token;
-
-    if (token.isEmpty) return setLoggedOutUser();
-  }
-
-  Future<ApiResponse?> signIn() async {
+  Future<ApiResponse> signIn() async {
     final response = await ref.read(signInProvider.notifier).signIn();
-
-    return response.when(
-      left: (response) => response,
-      right: (user) {
-        setLoggedInUser(user);
-        return null;
-      },
-    );
+    return response;
   }
 
-  Future<ApiResponse?> signUp() async {
+  Future<ApiResponse> signUp() async {
     final response = await ref.read(signUpProvider.notifier).signUp();
-
-    return response.when(
-      left: (response) => response,
-      right: (user) {
-        setLoggedInUser(user);
-        return null;
-      },
-    );
+    return response;
   }
 
-  void setLoggedInUser(User user) =>
-      state = state.copyWith(user: user, authStatus: AuthStatus.authenticated);
+  Future<ApiResponse> _checkAuthStatus() async {
+    final response = await authService.checkStatus();
+    return response;
+  }
 
-  void setLoggedOutUser() {
+  void setLoggedIn(User user) {
+    state = state.copyWith(user: user, authStatus: AuthStatus.authenticated);
+  }
+
+  void setLoggedOut() {
     state = state.copyWith(user: null, authStatus: AuthStatus.unauthenticated);
-    pb.authStore.clear();
-    _authStoreSubscription?.cancel();
   }
 
-  void onStateChanged() {
-    _authStoreSubscription?.cancel();
+  void logout() => pb.authStore.clear();
+
+  void _onStateChanged() {
     _authStoreSubscription = pb.authStore.onChange.listen((event) {
-      if (event.token.isEmpty) setLoggedOutUser();
-      return;
+      log('AuthStoreEvent: $event');
+      if (event.token.isEmpty) {
+        setLoggedOut();
+        return;
+      }
+      final user = User.fromJson(pb.authStore.model.toJson());
+      setLoggedIn(user);
     });
   }
 

@@ -30,6 +30,8 @@ class ApiResponse {
       message: error.toString(),
     );
   }
+  factory ApiResponse.customMessage(String message) =>
+      ApiResponse(code: 200, message: message);
 
   factory ApiResponse.fromClientException(ClientException error) {
     final data = ApiData.fromJson(error.response);
