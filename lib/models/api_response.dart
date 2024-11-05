@@ -29,10 +29,7 @@ class ApiResponse {
       );
 
   factory ApiResponse.fromError(dynamic error) {
-    return ApiResponse(
-      code: 500,
-      message: error.toString(),
-    );
+    return ApiResponse(code: 500, message: error.toString());
   }
 
   factory ApiResponse.customMessage(String message) =>
